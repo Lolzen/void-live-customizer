@@ -53,10 +53,14 @@ then
     echo "void-mklive found. attempting 'git pull'"
     cd void-mklive
     git pull
+    #issue make if git pull was triggered
     cd ..
 else
     echo "void-mklive not found. Pulling source."
     git clone https://github.com/void-linux/void-mklive
+    cd void-mklive
+    make
+    cd ..
 fi
 
 #clear packages-include list
@@ -82,7 +86,7 @@ echo ""
 echo "Dotfiles have to be included in a structure where the respective files go to. See the dotfiles folder as example."
 echo "This essentially preconfigures Void Linux with personal settings"
 if ask "Include dotfiles? default: Yes" Y; then
-    CMD="${CMD} -I dotfiles"
+    CMD="${CMD} -I ../dotfiles"
 else
     echo "No additional dotfiles will be placed. Using the default."
 fi
@@ -106,7 +110,7 @@ echo "nonfree: nonfree packages"
 echo "multilib: provides 32bit packages for x86_64 systems"
 echo "multilib-nonfree: 32bit nonfree packages"
 if ask "Enable additional repositories? default: Yes" Y; then
-    CMD="${CMD} -r https://alpha.de.repo.voidlinux.org/current/nonfree -r https://alpha.de.repo.voidlinux.org/current/multilib -r https://alpha.de.repo.voidlinux.org/current/multilib/nonfree"
+    CMD="${CMD} -r https://repo-us.voidlinux.org/current/nonfree -r https://repo-us.voidlinux.org/current/multilib -r https://repo-us.voidlinux.org/current/multilib/nonfree"
     multilib_var=true
 else
     echo "No additional repositories will be enabled."
@@ -157,16 +161,15 @@ then
 fi
 
 package_list_final=$(<packages-include)
-CMD="${CMD} -p '${package_list_final}'"
+CMD="sudo ./mklive.sh ${CMD} -p '${package_list_final}'"
 
 echo ""
 echo "this is the final command:"
-#echo "./mklive.sh${CMD}'$package_list_final'"
-echo "./mklive.sh${CMD}"
+echo "${CMD}"
 if ask "Are you sure everything is correct?"; then
     echo "building the live image"
     cd void-mklive
-    ./mklive.sh$CMD
+    eval $CMD
 else
     echo "Aborted"
 fi
